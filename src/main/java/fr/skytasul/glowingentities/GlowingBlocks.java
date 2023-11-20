@@ -1,11 +1,14 @@
 package fr.skytasul.glowingentities;
 
+import java.nio.channels.Channel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -26,6 +29,7 @@ import io.papermc.paper.event.packet.PlayerChunkLoadEvent;
  *
  * @author SkytAsul
  */
+@SuppressWarnings({"JavadocDeclaration", "unused"})
 public class GlowingBlocks implements Listener {
 
 	private final @NotNull GlowingEntities entities;
@@ -34,7 +38,7 @@ public class GlowingBlocks implements Listener {
 
 	/**
 	 * Initializes the Glowing blocks API.
-	 * 
+	 *
 	 * @param plugin plugin that will be used to register the events.
 	 */
 	public GlowingBlocks(@NotNull Plugin plugin) {
@@ -47,7 +51,7 @@ public class GlowingBlocks implements Listener {
 
 	/**
 	 * Enables the Glowing blocks API.
-	 * 
+	 *
 	 * @see #disable()
 	 */
 	public void enable() {
@@ -64,9 +68,9 @@ public class GlowingBlocks implements Listener {
 	/**
 	 * Disables the API.
 	 * <p>
-	 * Methods such as {@link #setGlowing(Location, Player, ChatColor)} and
+	 * Methods such as {@link #setGlowing(Location, Player, NamedTextColor)} and
 	 * {@link #unsetGlowing(Location, Player)} will no longer be usable.
-	 * 
+	 *
 	 * @see #enable()
 	 */
 	public void disable() {
@@ -102,33 +106,30 @@ public class GlowingBlocks implements Listener {
 
 	/**
 	 * Makes the {@link Block} passed as a parameter glow with the specified color.
-	 * 
+	 *
 	 * @param block block to make glow
 	 * @param receiver player which will see the block glowing
 	 * @param color color of the glowing effect
 	 * @throws ReflectiveOperationException
 	 */
-	public void setGlowing(@NotNull Block block, @NotNull Player receiver, @NotNull ChatColor color)
+	public void setGlowing(@NotNull Block block, @NotNull Player receiver, @NotNull NamedTextColor color)
 			throws ReflectiveOperationException {
 		setGlowing(block.getLocation(), receiver, color);
 	}
 
 	/**
 	 * Makes the block at the location passed as a parameter glow with the specified color.
-	 * 
+	 *
 	 * @param block location of the block to make glow
 	 * @param receiver player which will see the block glowing
 	 * @param color color of the glowing effect
 	 * @throws ReflectiveOperationException
 	 */
-	public void setGlowing(@NotNull Location block, @NotNull Player receiver, @NotNull ChatColor color)
+	public void setGlowing(@NotNull Location block, @NotNull Player receiver, @NotNull NamedTextColor color)
 			throws ReflectiveOperationException {
 		ensureEnabled();
 
 		block = normalizeLocation(block);
-
-		if (!color.isColor())
-			throw new IllegalArgumentException("ChatColor must be a color format");
 
 		PlayerData playerData = glowing.computeIfAbsent(Objects.requireNonNull(receiver), PlayerData::new);
 
@@ -145,7 +146,7 @@ public class GlowingBlocks implements Listener {
 
 	/**
 	 * Makes the {@link Block} passed as a parameter loose its glowing effect.
-	 * 
+	 *
 	 * @param block block to remove glowing effect from
 	 * @param receiver player which will no longer see the glowing effect
 	 * @throws ReflectiveOperationException
@@ -156,7 +157,7 @@ public class GlowingBlocks implements Listener {
 
 	/**
 	 * Makes the block at the location passed as a parameter loose its glowing effect.
-	 * 
+	 *
 	 * @param block location of the block to remove glowing effect from
 	 * @param receiver player which will no longer see the glowing effect
 	 * @throws ReflectiveOperationException
@@ -200,7 +201,7 @@ public class GlowingBlocks implements Listener {
 		PlayerData playerData = glowing.get(event.getPlayer());
 		if (playerData == null)
 			return;
-		
+
 		playerData.datas.forEach((location, blockData) -> {
 			if (Objects.equals(location.getWorld(), event.getWorld())
 					&& location.getBlockX() >> 4 == event.getChunk().getX()
@@ -231,17 +232,17 @@ public class GlowingBlocks implements Listener {
 		private final @NotNull Player player;
 		private final @NotNull Location location;
 
-		private @NotNull ChatColor color;
+		private @NotNull NamedTextColor color;
 		private int entityId;
 		private UUID entityUuid;
 
-		public GlowingBlockData(@NotNull Player player, @NotNull Location location, @NotNull ChatColor color) {
+		public GlowingBlockData(@NotNull Player player, @NotNull Location location, @NotNull NamedTextColor color) {
 			this.player = player;
 			this.location = location;
 			this.color = color;
 		}
 
-		public void setColor(@NotNull ChatColor color) throws ReflectiveOperationException {
+		public void setColor(@NotNull NamedTextColor color) throws ReflectiveOperationException {
 			this.color = color;
 
 			if (entityUuid != null)

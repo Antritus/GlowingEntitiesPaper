@@ -10,8 +10,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -33,6 +34,7 @@ import io.netty.channel.*;
  * @version 1.3.1
  * @author SkytAsul
  */
+@SuppressWarnings({"unused", "JavadocDeclaration"})
 public class GlowingEntities implements Listener {
 
 	protected final @NotNull Plugin plugin;
@@ -74,7 +76,7 @@ public class GlowingEntities implements Listener {
 	/**
 	 * Disables the API.
 	 * <p>
-	 * Methods such as {@link #setGlowing(int, String, Player, ChatColor, byte)} and
+	 * Methods such as {@link #setGlowing(int, String, Player, NamedTextColor, byte)} and
 	 * {@link #unsetGlowing(int, Player)} will no longer be usable.
 	 *
 	 * @see #enable()
@@ -108,7 +110,7 @@ public class GlowingEntities implements Listener {
 	/**
 	 * Make the {@link Entity} passed as a parameter glow with its default team color.
 	 *
-	 * @param entity entity to make glow
+	 * @param entity entity to make glowing
 	 * @param receiver player which will see the entity glowing
 	 * @throws ReflectiveOperationException
 	 */
@@ -119,12 +121,12 @@ public class GlowingEntities implements Listener {
 	/**
 	 * Make the {@link Entity} passed as a parameter glow with the specified color.
 	 *
-	 * @param entity entity to make glow
+	 * @param entity entity to make glowing
 	 * @param receiver player which will see the entity glowing
 	 * @param color color of the glowing effect
 	 * @throws ReflectiveOperationException
 	 */
-	public void setGlowing(Entity entity, Player receiver, ChatColor color) throws ReflectiveOperationException {
+	public void setGlowing(Entity entity, Player receiver, NamedTextColor color) throws ReflectiveOperationException {
 		String teamID = entity instanceof Player ? entity.getName() : entity.getUniqueId().toString();
 		setGlowing(entity.getEntityId(), teamID, receiver, color, Packets.getEntityFlags(entity));
 	}
@@ -132,7 +134,7 @@ public class GlowingEntities implements Listener {
 	/**
 	 * Make the entity with specified entity ID glow with its default team color.
 	 *
-	 * @param entityID entity id of the entity to make glow
+	 * @param entityID entity id of the entity to make glowing
 	 * @param teamID internal string used to add the entity to a team
 	 * @param receiver player which will see the entity glowing
 	 * @throws ReflectiveOperationException
@@ -150,7 +152,7 @@ public class GlowingEntities implements Listener {
 	 * @param color color of the glowing effect
 	 * @throws ReflectiveOperationException
 	 */
-	public void setGlowing(int entityID, String teamID, Player receiver, ChatColor color)
+	public void setGlowing(int entityID, String teamID, Player receiver, NamedTextColor color)
 			throws ReflectiveOperationException {
 		setGlowing(entityID, teamID, receiver, color, (byte) 0);
 	}
@@ -166,11 +168,9 @@ public class GlowingEntities implements Listener {
 	 *        <a href="https://wiki.vg/Entity_metadata#Entity">wiki.vg</a> for more informations.
 	 * @throws ReflectiveOperationException
 	 */
-	public void setGlowing(int entityID, String teamID, Player receiver, ChatColor color, byte otherFlags)
+	public void setGlowing(int entityID, String teamID, Player receiver, NamedTextColor color, byte otherFlags)
 			throws ReflectiveOperationException {
 		ensureEnabled();
-		if (color != null && !color.isColor())
-			throw new IllegalArgumentException("ChatColor must be a color format");
 
 		PlayerData playerData = glowing.get(receiver);
 		if (playerData == null) {
@@ -258,7 +258,7 @@ public class GlowingEntities implements Listener {
 		final Player player;
 		final Map<Integer, GlowingData> glowingDatas;
 		ChannelHandler packetsHandler;
-		EnumSet<ChatColor> sentColors;
+		Set<NamedTextColor> sentColors;
 
 		PlayerData(GlowingEntities instance, Player player) {
 			this.instance = instance;
@@ -275,11 +275,11 @@ public class GlowingEntities implements Listener {
 		final PlayerData player;
 		final int entityID;
 		final String teamID;
-		ChatColor color;
+		NamedTextColor color;
 		byte otherFlags;
 		boolean enabled;
 
-		GlowingData(PlayerData player, int entityID, String teamID, ChatColor color, byte otherFlags) {
+		GlowingData(PlayerData player, int entityID, String teamID, NamedTextColor color, byte otherFlags) {
 			this.player = player;
 			this.entityID = entityID;
 			this.teamID = teamID;
@@ -337,7 +337,7 @@ public class GlowingEntities implements Listener {
 		private static Field packetMetadataItems;
 
 		// Teams
-		private static EnumMap<ChatColor, TeamData> teams = new EnumMap<>(ChatColor.class);
+		private static Map<NamedTextColor, TeamData> teams = new HashMap<>();
 
 		private static Constructor<?> createTeamPacket;
 		private static Constructor<?> createTeamPacketData;
@@ -576,7 +576,7 @@ public class GlowingEntities implements Listener {
 		public static void setGlowingColor(GlowingData glowingData) throws ReflectiveOperationException {
 			boolean sendCreation = false;
 			if (glowingData.player.sentColors == null) {
-				glowingData.player.sentColors = EnumSet.of(glowingData.color);
+				glowingData.player.sentColors = Set.of(glowingData.color);
 				sendCreation = true;
 			} else if (glowingData.player.sentColors.add(glowingData.color)) {
 				sendCreation = true;
@@ -806,6 +806,24 @@ public class GlowingEntities implements Listener {
 		}
 
 		private static class TeamData {
+			static Map<NamedTextColor, Character> chars = new WeakHashMap<>();
+			static {
+				chars.put(NamedTextColor.BLACK, '0');
+				chars.put(NamedTextColor.DARK_BLUE, '1');
+				chars.put(NamedTextColor.DARK_GREEN, '2');
+				chars.put(NamedTextColor.DARK_AQUA, '3');
+				chars.put(NamedTextColor.DARK_RED, '4');
+				chars.put(NamedTextColor.DARK_PURPLE, '5');
+				chars.put(NamedTextColor.GOLD, '6');
+				chars.put(NamedTextColor.GRAY, '0');
+				chars.put(NamedTextColor.DARK_GRAY, '0');
+				chars.put(NamedTextColor.GREEN, 'a');
+				chars.put(NamedTextColor.AQUA, 'b');
+				chars.put(NamedTextColor.RED, 'c');
+				chars.put(NamedTextColor.LIGHT_PURPLE, 'd');
+				chars.put(NamedTextColor.YELLOW, 'e');
+				chars.put(NamedTextColor.WHITE, 'f');
+			}
 
 			private final String id;
 			private final Object creationPacket;
@@ -815,13 +833,13 @@ public class GlowingEntities implements Listener {
 			private final Cache<String, Object> removePackets =
 					CacheBuilder.newBuilder().expireAfterAccess(3, TimeUnit.MINUTES).build();
 
-			public TeamData(int uid, ChatColor color) throws ReflectiveOperationException {
-				if (!color.isColor())
-					throw new IllegalArgumentException();
-				id = "glow-" + uid + color.getChar();
+			public TeamData(int uid, NamedTextColor color) throws ReflectiveOperationException {
+
+				char colorChar = chars.get(color);
+				id = "glow-" + uid + colorChar;
 				Object team = createTeam.newInstance(scoreboardDummy, id);
 				setTeamPush.invoke(team, pushNever);
-				setTeamColor.invoke(team, getColorConstant.invoke(null, color.getChar()));
+				setTeamColor.invoke(team, getColorConstant.invoke(null, colorChar));
 				Object packetData = createTeamPacketData.newInstance(team);
 				creationPacket = createTeamPacket.newInstance(id, 0, Optional.of(packetData), Collections.EMPTY_LIST);
 			}
@@ -946,7 +964,7 @@ public class GlowingEntities implements Listener {
 					null,
 					null,
 					null)
-					;
+			;
 
 			private final int major, minor;
 			private String watcherFlags;
@@ -962,8 +980,8 @@ public class GlowingEntities implements Listener {
 			private String metadataItems;
 
 			private ProtocolMappings(int major, int minor, String watcherFlags, String markerTypeId, String watcherAccessor,
-					String playerConnection, String networkManager, String sendPacket, String channel,
-					String teamSetCollsion, String teamSetColor, String metdatataEntity, String metadataItems) {
+			                         String playerConnection, String networkManager, String sendPacket, String channel,
+			                         String teamSetCollsion, String teamSetColor, String metdatataEntity, String metadataItems) {
 				this.major = major;
 				this.minor = minor;
 				this.watcherFlags = watcherFlags;
