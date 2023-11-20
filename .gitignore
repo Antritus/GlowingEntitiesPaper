@@ -3,3 +3,7 @@
 /.settings
 .classpath
 .project
+/.idea/jarRepositories.xml
+/.idea/encodings.xml
+/.idea/.gitignore
+/.idea/vcs.xml
