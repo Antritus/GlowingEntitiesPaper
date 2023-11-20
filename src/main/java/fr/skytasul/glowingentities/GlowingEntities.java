@@ -815,8 +815,9 @@ public class GlowingEntities implements Listener {
 				chars.put(NamedTextColor.DARK_RED, '4');
 				chars.put(NamedTextColor.DARK_PURPLE, '5');
 				chars.put(NamedTextColor.GOLD, '6');
-				chars.put(NamedTextColor.GRAY, '0');
-				chars.put(NamedTextColor.DARK_GRAY, '0');
+				chars.put(NamedTextColor.GRAY, '7');
+				chars.put(NamedTextColor.DARK_GRAY, '8');
+				chars.put(NamedTextColor.BLUE, '9');
 				chars.put(NamedTextColor.GREEN, 'a');
 				chars.put(NamedTextColor.AQUA, 'b');
 				chars.put(NamedTextColor.RED, 'c');
